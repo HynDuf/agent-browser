@@ -1,5 +1,11 @@
 # agent-browser
 
+## 0.8.5
+
+### Patch Changes
+
+- cb2f8c3: Fixed version synchronization to automatically update Cargo.lock alongside Cargo.toml during releases, and made the CLI binary executable. This ensures the Rust CLI version stays in sync with the npm package version.
+
 ## 0.8.4
 
 ### Patch Changes
