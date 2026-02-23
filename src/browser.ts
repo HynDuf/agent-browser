@@ -29,19 +29,21 @@ import {
 } from './state-utils.js';
 
 /**
- * Returns the default Playwright timeout for standard operations.
+ * Returns the default Playwright timeout in milliseconds for standard operations.
  * Can be overridden via the AGENT_BROWSER_DEFAULT_TIMEOUT environment variable.
+ * Default is 25s, which is below the CLI's 30s IPC read timeout to ensure
+ * Playwright errors are returned before the CLI gives up with EAGAIN.
  * CDP and recording contexts use a shorter fixed timeout (10s) and are not affected.
  */
-function getDefaultTimeout(): number {
+export function getDefaultTimeout(): number {
   const envValue = process.env.AGENT_BROWSER_DEFAULT_TIMEOUT;
   if (envValue) {
     const parsed = parseInt(envValue, 10);
-    if (!isNaN(parsed) && parsed > 0) {
+    if (!isNaN(parsed) && parsed >= 1000) {
       return parsed;
     }
   }
-  return 60000;
+  return 25000;
 }
 
 // Screencast frame data from CDP

@@ -507,6 +507,23 @@ Auto-discovered config files that are missing are silently ignored. If `--config
 
 > **Tip:** If your project-level `agent-browser.json` contains environment-specific values (paths, proxies), consider adding it to `.gitignore`.
 
+## Default Timeout
+
+The default Playwright timeout for standard operations (clicks, waits, fills, etc.) is 25 seconds. This is intentionally below the CLI's 30-second IPC read timeout so that Playwright returns a proper error instead of the CLI timing out with EAGAIN.
+
+Override the default timeout via environment variable:
+
+```bash
+# Set a longer timeout for slow pages (in milliseconds)
+export AGENT_BROWSER_DEFAULT_TIMEOUT=45000
+```
+
+> **Note:** Setting this above 30000 (30s) may cause EAGAIN errors on slow operations because the CLI's read timeout will expire before Playwright responds. The CLI retries transient errors automatically, but response times will increase.
+
+| Variable | Description |
+|----------|-------------|
+| `AGENT_BROWSER_DEFAULT_TIMEOUT` | Default Playwright timeout in ms (default: 25000) |
+
 ## Selectors
 
 ### Refs (Recommended for AI)

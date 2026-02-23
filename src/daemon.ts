@@ -26,7 +26,7 @@ type Manager = BrowserManager | IOSManager;
  * If the kernel buffer is full (socket.write returns false),
  * waits for the 'drain' event before resolving.
  */
-function safeWrite(socket: net.Socket, payload: string): Promise<void> {
+export function safeWrite(socket: net.Socket, payload: string): Promise<void> {
   return new Promise((resolve, reject) => {
     if (socket.destroyed) {
       resolve();
@@ -592,8 +592,13 @@ export async function startDaemon(options?: {
         commandQueue.push(line);
       }
 
-      processQueue().catch(() => {
-        // Socket write failures during queue processing are non-fatal
+      processQueue().catch((err) => {
+        // Socket write failures during queue processing are non-fatal;
+        // the client has likely disconnected.
+        console.warn('[warn] processQueue error:', err?.message ?? err);
+        if (process.env.AGENT_BROWSER_DEBUG === '1') {
+          console.error('[DEBUG] processQueue error (full):', err);
+        }
       });
     });
 

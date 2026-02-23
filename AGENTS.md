@@ -24,6 +24,8 @@ When adding or changing user-facing features (new flags, commands, behaviors, en
 
 This applies to changes that either human users or AI agents would need to know about. Do not skip any of these locations.
 
+In the `docs/src/app/` MDX files, always use HTML `<table>` syntax for tables (not markdown pipe tables). This matches the existing convention across the docs site.
+
 <!-- opensrc:start -->
 
 ## Source Code Reference
