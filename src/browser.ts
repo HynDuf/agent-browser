@@ -1347,37 +1347,30 @@ export class BrowserManager {
           : { width: 1280, height: 720 };
 
     let context: BrowserContext;
-    if (hasExtensions) {
-      // Extensions require persistent context in a temp directory
-      const extPaths = options.extensions!.join(',');
+    if (hasExtensions || hasProfile) {
+      // Both extensions and profile need persistent context
+      // When combined: use profile path with extension chrome args
+      const extPaths = hasExtensions ? options.extensions!.join(',') : null;
+      const extArgs = extPaths
+        ? [`--disable-extensions-except=${extPaths}`, `--load-extension=${extPaths}`]
+        : [];
+      const allArgs =
+        extArgs.length && baseArgs
+          ? [...extArgs, ...baseArgs]
+          : extArgs.length
+            ? extArgs
+            : baseArgs;
+
+      // Profile path takes priority, otherwise temp dir for extension-only
       const session = process.env.AGENT_BROWSER_SESSION || 'default';
-      // Combine extension args with custom args and file access args
-      const extArgs = [`--disable-extensions-except=${extPaths}`, `--load-extension=${extPaths}`];
-      const allArgs = baseArgs ? [...extArgs, ...baseArgs] : extArgs;
-      context = await launcher.launchPersistentContext(
-        path.join(os.tmpdir(), `agent-browser-ext-${session}`),
-        {
-          headless: false,
-          executablePath: options.executablePath,
-          args: allArgs,
-          viewport,
-          extraHTTPHeaders: options.headers,
-          userAgent: options.userAgent,
-          ...(options.proxy && { proxy: options.proxy }),
-          ignoreHTTPSErrors: options.ignoreHTTPSErrors ?? false,
-          ...(this.colorScheme && { colorScheme: this.colorScheme }),
-          ...(this.downloadPath && { downloadsPath: this.downloadPath }),
-        }
-      );
-      this.isPersistentContext = true;
-    } else if (hasProfile) {
-      // Profile uses persistent context for durable cookies/storage
-      // Expand ~ to home directory since it won't be shell-expanded
-      const profilePath = options.profile!.replace(/^~\//, os.homedir() + '/');
-      context = await launcher.launchPersistentContext(profilePath, {
-        headless: options.headless ?? true,
+      const contextPath = hasProfile
+        ? options.profile!.replace(/^~\//, os.homedir() + '/')
+        : path.join(os.tmpdir(), `agent-browser-ext-${session}`);
+
+      context = await launcher.launchPersistentContext(contextPath, {
+        headless: hasExtensions ? false : (options.headless ?? true),
         executablePath: options.executablePath,
-        args: baseArgs,
+        args: allArgs,
         viewport,
         extraHTTPHeaders: options.headers,
         userAgent: options.userAgent,
